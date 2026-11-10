@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stack CPU + LC3 Simulator
 
-## Getting Started
+เว็บสำหรับรันและไล่ทีละคำสั่งโปรแกรม **Stack CPU** และ **LC3** ของวิชา 2301274 Computer Systems (บทที่ 8–11)
 
-First, run the development server:
+- เขียนโค้ดแล้วแปลให้ทันที พร้อม syntax highlight และ error เป็นภาษาไทยบอกเลขบรรทัด
+- รัน (3 ความเร็ว) · ทีละคำสั่ง · ย้อนกลับได้ · breakpoint
+- อธิบายทุก step ว่าคำสั่งทำอะไร เช่น `IF :END — TOS = 3 ≠ 0 → ไม่กระโดด`
+- Stack CPU: Data/Return Stack, หน่วยความจำ 8/16 บิต, รองรับรูปแบบ `Address 0: LIT` จากชีท
+- LC3: R0–R7, PC, IR, CC, Console (OUT/PUTS/GETC/IN, memory-mapped I/O xFE00–xFE06), ตารางหน่วยความจำถอดเป็นคำสั่ง
+
+## เริ่มใช้
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+bun dev        # http://localhost:3000
+bun run test   # ทดสอบ engine เทียบกับชีทและ Quiz 9–10
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ปุ่มลัด: `F8` รัน/หยุด · `F10` ทีละคำสั่ง · `Shift+F10` ย้อน · `F9` เริ่มใหม่
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## หมายเหตุการตีความ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `AND` แบบ imm5 ใช้ sign-extend ตาม LC3 มาตรฐาน (ชีทเขียนว่าเติม 0)
+- `LEA` ตั้ง condition code ตามที่ชีทเขียน `LEA+`
+- `TRAP x20–x25` ทำงานในตัว simulator ถ้าโปรแกรมไม่ได้ใส่ trap vector table เอง
+- `POW` / `DIV2` เป็นคำสั่งเสริมจากแบบฝึกหัดท้ายบท 9
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js · Tailwind v4 · shadcn/ui · IBM Plex Sans Thai
