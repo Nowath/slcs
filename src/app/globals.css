@@ -1,7 +1,10 @@
 /* Stack CPU + LC3 Simulator — 2301274 Computer Systems
- * macrostructure: Workbench (toolbar + editor | machine state | memory/trace)
- *   อ้างอิงจาก IDE/debugger (VS Code debug view, WebLC3) — ถอดมาแค่โครง 3 คอลัมน์กับแถบ step
- *   ตัดทิ้ง: sidebar/explorer, tab หลายไฟล์ — เครื่องมือเรียนต้องเห็นทุกอย่างในจอเดียว
+ * macrostructure: Workbench (toolbar + editor ½ | สถานะเครื่อง + แท็บ ½)
+ *   อ้างอิงจาก IDE/debugger (VS Code debug view, WebLC3) — ถอดมาแค่โครงแบ่งครึ่งกับแถบ step
+ *   ฝั่งขวา: สถานะเครื่อง (stack/เรจิสเตอร์) ปักไว้บนสุดเสมอ ส่วนที่ดูทีละอย่างได้ (trace,
+ *   memory, console, ชุดคำสั่ง) อยู่ในแท็บ — ตอน step ต้องเห็น state คู่กับโค้ดตลอด
+ *   memory grid ของ Stack โชว์ครบ 256 ช่องเสมอ ไม่ซ่อนแถวว่าง
+ *   ตัดทิ้ง: sidebar/explorer, tab หลายไฟล์
  * CI: IBM Plex Sans Thai (เนื้อความ) + IBM Plex Mono (โค้ด/ตัวเลข) · น้ำเงินคราม hue 258
  * style: เหลี่ยมเล็ก (--radius 0.375rem) เพราะแน่นข้อมูล · เส้นขนแมว ไม่มีเงา · พื้นทึบ
  * สีมีหน้าที่: --pc = คำสั่งที่กำลังจะทำ (สีแบรนด์) · --changed = ค่าที่เพิ่งเปลี่ยน (เขียว)
@@ -121,6 +124,10 @@
   --chart-4: var(--signal-green);
   --chart-5: var(--signal-brick);
   --radius: 0.375rem;
+  /* ความสูง header (py-2 + แท็บ h-10 + เส้นล่าง) — ของที่ sticky ใต้ header ใช้ค่านี้ */
+  --header-h: 57px;
+  /* ค่าเริ่มต้นของแถบควบคุม StickyToolbar วัดจริงแล้วเขียนทับตอนรัน */
+  --toolbar-h: 78px;
   --sidebar: var(--surface);
   --sidebar-foreground: var(--brand-night);
   --sidebar-primary: var(--brand-indigo);

@@ -75,6 +75,15 @@ describe("Stack CPU: แต่ละคำสั่งตามตาราง I
     const m = run("DROP\nHALT")
     expect(m.error).toContain("underflow")
   })
+  test("ไม่มี HALT → หยุดที่ท้ายโปรแกรม ไม่ push 0 จากช่องว่างไปเรื่อยๆ", () => {
+    const m = run("LIT 30")
+    expect(m.ds).toEqual([30])
+    expect(m.error).toContain("เลยท้ายโปรแกรม")
+  })
+  test("กระโดดไปข้อมูลที่อยู่ในโปรแกรมยังทำงานได้", () => {
+    const m = run("LIT 0\nIF 5\nHALT\n0\n0\n15") // addr 5 = 15 = HALT
+    expect(m.halted).toBe(true)
+  })
   test("รัน opcode ที่ไม่มีอยู่ → error", () => {
     const m = run("LIT 0\nIF 6\nHALT\n0\n0\n0\n200")
     expect(m.error).toContain("ไม่ใช่ opcode")
@@ -82,6 +91,15 @@ describe("Stack CPU: แต่ละคำสั่งตามตาราง I
 })
 
 describe("Stack CPU: assembler", () => {
+  test("LIT n บรรทัดเดียวหรือแยกบรรทัดได้ผลเหมือนกัน", () => {
+    expect(assembleStack("LIT 30\nHALT", 8).memory.slice(0, 3)).toEqual(assembleStack("LIT\n30\nHALT", 8).memory.slice(0, 3))
+  })
+  test("เตือนเลขเกินมาหลัง operand และค่าเกินขนาดบิต", () => {
+    expect(assembleStack("LIT 10 3\nHALT", 8).errors.map((e) => e.message).join()).toContain("เกินมา")
+    expect(assembleStack("LIT 300\nHALT", 8).errors.map((e) => e.message).join()).toContain("เก็บเป็น 44")
+    expect(assembleStack("LIT 300\nHALT", 16).errors).toEqual([])
+    expect(assembleStack("LIT -5\nHALT", 8).errors).toEqual([])
+  })
   test("ภาษาเครื่องของตัวอย่างตัวแปร A + B ตรงกับ address ในชีท", () => {
     const p = assembleStack(STACK_EXAMPLES.find((e) => e.id === "var")!.code, 8)
     expect(p.memory.slice(0, 13)).toEqual([0x00, 11, 0x01, 0x00, 12, 0x01, 0x07, 0x00, 13, 0x02, 0x0f, 1, 2])

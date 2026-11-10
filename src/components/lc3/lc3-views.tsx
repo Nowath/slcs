@@ -16,7 +16,8 @@ export function Registers({ m, changed }: { m: Lc3Machine | null; changed: strin
   const r = m?.r ?? [0, 0, 0, 0, 0, 0, 0, 0]
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid grid-cols-2 gap-2">
+      {/* อยู่ครึ่งจอขวาคู่กับแท็บ ต้องเตี้ยพอให้แท็บโผล่ในจอแรก → PC/CC/IR แถวเดียว, R0–R7 สี่คอลัมน์ */}
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,2fr)]">
         <div className="rounded-md border bg-pc-soft px-3 py-2">
           <dt className="text-xs text-muted-foreground">PC</dt>
           <dd className="font-mono text-lg font-semibold text-pc tabular-nums">{m ? hex(m.pc, 4) : "–"}</dd>
@@ -38,7 +39,7 @@ export function Registers({ m, changed }: { m: Lc3Machine | null; changed: strin
             ))}
           </dd>
         </div>
-        <div className="col-span-2 rounded-md border px-3 py-2">
+        <div className="col-span-2 rounded-md border px-3 py-2 sm:col-span-1">
           <dt className="text-xs text-muted-foreground">IR (คำสั่งล่าสุด)</dt>
           <dd className="flex flex-wrap items-baseline gap-x-3 font-mono tabular-nums">
             <span className="font-semibold">{m ? hex(m.ir, 4) : "–"}</span>
@@ -46,7 +47,7 @@ export function Registers({ m, changed }: { m: Lc3Machine | null; changed: strin
           </dd>
         </div>
       </dl>
-      <dl className="grid grid-cols-2 gap-2">
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {r.map((v, i) => {
           const c = printable(v)
           const hot = changed.includes(`R${i}`)
@@ -62,7 +63,7 @@ export function Registers({ m, changed }: { m: Lc3Machine | null; changed: strin
                 <span className={cn("font-mono font-semibold", hot && "text-changed")}>R{i}</span>
                 {REG_HINT[i] && <span className="truncate">{REG_HINT[i]}</span>}
               </dt>
-              <dd className="flex items-baseline justify-between gap-2 font-mono tabular-nums">
+              <dd className="flex flex-wrap items-baseline justify-between gap-x-2 font-mono tabular-nums">
                 <span className="font-semibold">{hex(v, 4)}</span>
                 <span className="text-xs text-muted-foreground">
                   {toSigned(v, 16)}

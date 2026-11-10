@@ -98,6 +98,14 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
       }
       const n = parseNumber(tok)
       if (n !== null) {
+        // "LIT 10 3" — เลขตัวที่สองไม่ใช่ operand แต่กลายเป็นข้อมูล 1 ช่องที่ CPU จะอ่านเป็น opcode ต่อ
+        if (ti !== 0) {
+          errors.push({
+            line,
+            message: `${tok} เกินมา — คำสั่งรับ operand ได้ตัวเดียว เลขนี้จะกลายเป็นข้อมูลแยก 1 ช่องที่ CPU อ่านเป็นคำสั่ง`,
+            severity: "warning",
+          })
+        }
         items.push({ addr, line, data: n, tok })
         addr += 1
         return
@@ -133,6 +141,12 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
   const addrLabel = new Map<number, string>()
   for (const [k, v] of labels) if (!addrLabel.has(v)) addrLabel.set(v, k)
   const used = new Set<string>()
+  // ค่าที่เกินขนาดข้อมูลจะถูกตัดบิตทิ้ง (8 บิต: LIT 300 → 44) ต้องบอก ไม่งั้นดูเหมือน stack คำนวณผิด
+  const checkFit = (v: number, line: number) => {
+    if (v > mask || v < -(mask + 1) / 2) {
+      errors.push({ line, message: `${v} เกิน ${bits} บิต — จะถูกเก็บเป็น ${v & mask}`, severity: "warning" })
+    }
+  }
 
   for (const it of items) {
     if (it.addr >= memSize) {
@@ -155,6 +169,7 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
           text += ` :${name}`
         } else {
           text += ` ${v}`
+          checkFit(v, it.line)
         }
         const val = (v ?? 0) & mask
         if (it.addr + 1 < memSize) memory[it.addr + 1] = val
@@ -163,6 +178,7 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
       }
       listing.push({ addr: it.addr, words, text, line: it.line, label: addrLabel.get(it.addr) })
     } else {
+      checkFit(it.data!, it.line)
       const v = it.data! & mask
       memory[it.addr] = v
       listing.push({ addr: it.addr, words: [v], text: `${it.data}`, line: it.line, label: addrLabel.get(it.addr) })
@@ -179,7 +195,11 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
     }
   }
   if (!items.some((it) => it.op?.name === "HALT") && items.length > 0) {
-    errors.push({ line: items[items.length - 1].line, message: "ไม่มี HALT — CPU จะทำต่อไปเรื่อยๆ จนเจอข้อมูลที่ไม่ใช่คำสั่ง", severity: "warning" })
+    errors.push({
+      line: items[items.length - 1].line,
+      message: "ไม่มี HALT — รันแล้ว PC จะเลยท้ายโปรแกรมแล้วหยุดด้วย error",
+      severity: "warning",
+    })
   }
 
   errors.sort((x, y) => x.line - y.line)
@@ -226,8 +246,11 @@ export class StackMachine {
   /** address ที่เพิ่งถูกเขียน ใช้ไฮไลต์ใน memory grid */
   lastWrite: number | null = null
   labelAt: Map<number, string>
+  /** address ถัดจากช่องสุดท้ายของโปรแกรม (รวมข้อมูล) */
+  end: number
 
   constructor(prog: StackProgram) {
+    this.end = prog.listing.reduce((e, r) => Math.max(e, r.addr + r.words.length), 0)
     this.bits = prog.bits
     this.mask = prog.bits === 8 ? 0xff : 0xffff
     this.memSize = 1 << prog.bits
@@ -279,6 +302,11 @@ export class StackMachine {
     let jumped = false
     this.lastWrite = null
     try {
+      // ช่องว่างในหน่วยความจำมีค่า 0 = opcode LIT ถ้าปล่อยวิ่งต่อจะ push 0 ลง DS ไม่รู้จบ
+      // ซึ่งดูเหมือน stack นับผิด — หยุดตรงนี้แล้วบอกสาเหตุจริงแทน
+      if (addr >= this.end) {
+        this.fail(`PC = ${addr} เลยท้ายโปรแกรมแล้ว (ช่องสุดท้ายคือ ${this.end - 1}) — ลืม HALT หรือกระโดดออกนอกโปรแกรม?`)
+      }
       const code = this.read(addr)
       const op = OP_BY_CODE.get(code)
       if (!op) this.fail(`mem[${addr}] = ${code} ไม่ใช่ opcode — ลืม HALT หรือกระโดดผิดที่?`)

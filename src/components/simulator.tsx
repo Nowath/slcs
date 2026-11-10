@@ -9,6 +9,8 @@ import { useStored } from "@/hooks/use-stored";
 
 export function Simulator() {
   const [tab, setTab] = useStored<"stack" | "lc3">("tab", "stack");
+  // ขนาดตัวอักษรใน editor ใช้ค่าเดียวทั้งสองเครื่อง สลับแท็บแล้วไม่เด้งกลับ
+  const [fontSize, setFontSize] = useStored("editor.fontSize", 13);
   return (
     <Tabs
       value={tab}
@@ -52,10 +54,10 @@ export function Simulator() {
       <main className="mx-auto w-full max-w-[1600px] px-4 pt-6 pb-12">
         {/* keepMounted: สลับแท็บแล้วสถานะเครื่องอีกฝั่งยังอยู่ */}
         <TabsContent value="stack" keepMounted>
-          <StackSim active={tab === "stack"} />
+          <StackSim active={tab === "stack"} fontSize={fontSize} onFontSize={setFontSize} />
         </TabsContent>
         <TabsContent value="lc3" keepMounted>
-          <Lc3Sim active={tab === "lc3"} />
+          <Lc3Sim active={tab === "lc3"} fontSize={fontSize} onFontSize={setFontSize} />
         </TabsContent>
       </main>
     </Tabs>

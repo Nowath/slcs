@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fmt, hex, printable, type NumFormat } from "@/lib/format"
@@ -95,13 +94,8 @@ export function MemoryGrid({
   const base = page * PAGE
   const pcOp = OP_BY_CODE.get(mem[pc])
   const cols = Array.from({ length: 16 }, (_, i) => i)
-  const [showAll, setShowAll] = useState(false)
-  // ซ่อนแถวที่เป็น 0 ทั้งแถว (ไม่ใช่โค้ด/ไม่มี PC) — ให้เห็นแค่ส่วนที่โปรแกรมใช้จริง
-  const allRows = Array.from({ length: PAGE / 16 }, (_, r) => base + r * 16)
-  const used = (rb: number) =>
-    rb < programEnd || (pc >= rb && pc < rb + 16) || mem.slice(rb, rb + 16).some((v) => v !== 0)
-  const rowsShown = showAll ? allRows : allRows.filter(used)
-  const hiddenRows = allRows.length - rowsShown.length
+  // โชว์ครบ 16 แถวเสมอ — เห็นภาพหน่วยความจำทั้งก้อน ช่องว่างจางลงด้วยสีอยู่แล้ว
+  const rows = Array.from({ length: PAGE / 16 }, (_, r) => base + r * 16)
   return (
     <div className="flex flex-col gap-2">
       {pages > 1 && (
@@ -131,7 +125,7 @@ export function MemoryGrid({
             </tr>
           </thead>
           <tbody>
-            {rowsShown.map((rowBase) => {
+            {rows.map((rowBase) => {
               return (
                 <tr key={rowBase}>
                   <th className="pr-1 text-left font-normal text-muted-foreground/70">{rowBase}</th>
@@ -164,11 +158,6 @@ export function MemoryGrid({
           </tbody>
         </table>
       </div>
-      {(hiddenRows > 0 || showAll) && (
-        <Button variant="ghost" size="sm" className="self-start text-muted-foreground" onClick={() => setShowAll((v) => !v)}>
-          {showAll ? "ซ่อนแถวที่เป็น 0 ทั้งแถว" : `แสดงครบทุกช่อง (ซ่อนแถวว่างอยู่ ${hiddenRows} แถว)`}
-        </Button>
-      )}
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <li className="flex items-center gap-1.5">
           <span className="size-3 rounded-sm bg-pc" /> PC
