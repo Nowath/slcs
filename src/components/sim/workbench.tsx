@@ -150,11 +150,13 @@ export function TabbedPanel<T extends string>({
       className="min-w-0 gap-0 rounded-lg border bg-card"
     >
       <div className="flex min-h-11 items-end justify-between gap-2 border-b px-2 pt-1.5">
-        {/* แถบแท็บเลื่อนแนวนอนในกล่องตัวเอง จอแคบแล้วไม่ดันทั้งหน้าให้ล้น */}
-        <div className="-mb-px min-w-0 overflow-x-auto">
-          <TabsList variant="line" aria-label={label} className="h-10! gap-0">
+        {/* แถบแท็บเลื่อนแนวนอนในกล่องตัวเอง จอแคบแล้วไม่ดันทั้งหน้าให้ล้น
+            ซ่อน scrollbar (ปัด/เลื่อนยังได้) และเส้นใต้แท็บต้องอยู่ในกล่อง (bottom-0 ไม่ใช่ -5px ของ shadcn)
+            ไม่งั้นล้นแนวตั้ง 1px แล้ว overflow-x-auto จะโชว์ scrollbar แนวตั้งขึ้นมา */}
+        <div className="-mb-px min-w-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList variant="line" aria-label={label} className="h-10! gap-0 p-0">
             {tabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="px-3">
+              <TabsTrigger key={t.value} value={t.value} className="h-full! px-3 after:bottom-0!">
                 {t.label}
               </TabsTrigger>
             ))}
