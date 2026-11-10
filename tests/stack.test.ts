@@ -96,6 +96,10 @@ describe("Stack CPU: assembler", () => {
   })
   test("เตือนเลขเกินมาหลัง operand และค่าเกินขนาดบิต", () => {
     expect(assembleStack("LIT 10 3\nHALT", 8).errors.map((e) => e.message).join()).toContain("เกินมา")
+    expect(assembleStack("HALT 5", 8).errors.map((e) => e.message).join()).toContain("เกินมา")
+    // ข้อมูลล้วนตามหลัง label หรือหลายค่าในบรรทัดเดียว เขียนถูกแล้ว ห้ามเตือน
+    expect(assembleStack("LIT A\nLOAD\nHALT\nA: 5", 8).errors).toEqual([])
+    expect(assembleStack("HALT\n1 2 3", 8).errors).toEqual([])
     expect(assembleStack("LIT 300\nHALT", 8).errors.map((e) => e.message).join()).toContain("เก็บเป็น 44")
     expect(assembleStack("LIT 300\nHALT", 16).errors).toEqual([])
     expect(assembleStack("LIT -5\nHALT", 8).errors).toEqual([])

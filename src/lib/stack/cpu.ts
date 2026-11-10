@@ -82,6 +82,7 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
     let text = raw.replace(/\/\/.*$/, "").replace(/;.*$/, "")
     text = text.replace(/^\s*address\s+\d+\s*:/i, "") // รองรับรูปแบบ "Address 0: LIT" ในชีท
     const toks = text.split(/[\s,]+/).filter(Boolean)
+    let lineHasOp = false
     toks.forEach((tok, ti) => {
       if (pending) {
         pending.operand = tok
@@ -90,6 +91,7 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
       }
       const op = BY_NAME.get(tok.toUpperCase())
       if (op) {
+        lineHasOp = true
         const it: Item = { addr, line, op, tok }
         items.push(it)
         addr += op.operand ? 2 : 1
@@ -98,11 +100,12 @@ export function assembleStack(source: string, bits: 8 | 16): StackProgram {
       }
       const n = parseNumber(tok)
       if (n !== null) {
-        // "LIT 10 3" — เลขตัวที่สองไม่ใช่ operand แต่กลายเป็นข้อมูล 1 ช่องที่ CPU จะอ่านเป็น opcode ต่อ
-        if (ti !== 0) {
+        // "LIT 10 3" / "HALT 5" — เลขหลังคำสั่งที่ไม่ใช่ operand กลายเป็นข้อมูล 1 ช่องที่ CPU จะอ่านเป็น opcode ต่อ
+        // (ข้อมูลล้วนอย่าง "A: 5" หรือ "1 2 3" ไม่มีคำสั่งในบรรทัด ไม่ต้องเตือน)
+        if (lineHasOp) {
           errors.push({
             line,
-            message: `${tok} เกินมา — คำสั่งรับ operand ได้ตัวเดียว เลขนี้จะกลายเป็นข้อมูลแยก 1 ช่องที่ CPU อ่านเป็นคำสั่ง`,
+            message: `${tok} เกินมา — ไม่ใช่ operand ของคำสั่งในบรรทัดนี้ จะกลายเป็นข้อมูลแยก 1 ช่องที่ CPU อ่านเป็นคำสั่ง`,
             severity: "warning",
           })
         }
